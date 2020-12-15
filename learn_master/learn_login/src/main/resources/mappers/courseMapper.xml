@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="learn_user.demo.mapper.courseMapper">
+    <sql id="baseSql">
+        <if test="cid!=null">cid=#{cid}</if>
+        <if test="courseNo!=null">and course_no=#{courseNo}</if>
+        <if test="courseName!=null"> and course_name=#{courseName}</if>
+        <if test="substituteTeacher!=null">and substitute_teacher=#{tid}</if>
+        <if test="startTime!=null">and start_time=#{startTime}</if>
+        <if test="endTime!=null"> and end_time=#{endTime}</if>
+        <if test="learnTime!=null"> and learn_time=#{learnTime}</if>
+        <if test="courseType!=null"> and course_type=#{courseType}</if>
+        <if test="term!=null">and term=#{term}</if>
+        <if test="academicYear!=null">and academic_year=#{academicYear}</if>
+    </sql>
+    <sql id="courseStudentSql">
+        <if test="studentFk!=null">student_fk=#{studentFk}</if>
+        <if test="courseFk!=null">and course_fk=#{courseFk}</if>
+        <if test="score!=null">and score=#{score}</if>
+    </sql>
+    <resultMap id="courseResultMapByStudent" type="learn_user.demo.domain.course_student">
+        <association property="studentName" column="student_fk" select="learn_user.demo.mapper.studentMapper.findByStudentV2"></association>
+        <association property="courseName" column="course_fk" select="learn_user.demo.mapper.courseMapper.findByCourseV2"></association>
+    </resultMap>
+    <resultMap id="courseResultMap" type="learn_user.demo.domain.course">
+        <id column="cid" property="cid"/>
+        <result column="course_no" property="courseNo"/>
+        <result column="course_name" property="courseName"/>
+        <association property="substituteTeacher" column="substitute_teacher" select="learn_user.demo.mapper.teacherMapper.findTeacherById"></association>
+    </resultMap>
+    <resultMap id="courseResultMapV2" type="learn_user.demo.domain.course">
+        <id column="cid" property="cid"/>
+        <result column="course_no" property="courseNo"/>
+        <result column="course_name" property="courseName"/>
+        <association property="substituteTeacher" column="substitute_teacher" select="learn_user.demo.mapper.teacherMapper.findTeacherById"></association>
+        <association property="currentCount" column="cid" select="learn_user.demo.mapper.courseMapper.checkMax"></association>
+    </resultMap>
+
+
+    <update id="updateCourseByTeacher">
+        update course set update_time=#{updateTime},substitute_teacher=#{tid}
+        <where><include refid="baseSql"></include></where>
+    </update>
+    <select id="findCourseStudent" resultMap="courseResultMapByStudent">
+        select * from course_student where course_fk=#{cid} and student_fk=#{sid}
+    </select>
+    <select id="findAllCid" resultType="String">
+        select course_name from course where course_type=1
+    </select>
+    <select id="findByCourseV2" resultType="String">
+        select course_name from course where cid=#{cid}
+    </select>
+    <select id="findByCourse" resultMap="courseResultMap">
+        select * from course
+        <where><include refid="baseSql"></include></where>
+    </select>
+    <insert id="insertCourseStudent">
+        insert into course_student(student_fk,course_fk,create_time)
+        values(#{sid},#{cid},#{createTime})
+    </insert>
+    <select id="checkMax" resultType="Long">
+        select count(*) from course_student where course_fk=#{cid}
+    </select>
+    <select id="findByCourseList" resultMap="courseResultMap">
+        select * from course
+    </select>
+    <select id="findScoreByCourse" resultMap="courseResultMapByStudent">
+          select * from course_student where course_fk in(select cid from course where substitute_teacher=#{tid})
+    </select>
+    <select id="findCourseByUnChangeTeacher" resultMap="courseResultMap">
+        select * from course where substitute_teacher is null
+    </select>
+    <select id="findCourseByUnChange" resultMap="courseResultMapV2">
+     select course_no, cid,course_name,course_place,substitute_teacher,learn_time,start_time,end_time,course_type,course_desc,course_max_count from course
+     <where>
+         <if test="sid!=null">cid not in(select course_fk from  course_student where student_fk=#{sid}) and (course_type=0 or course_type=3)</if>
+     </where>
+    </select>
+    <select id="findStatus" resultType="Integer">
+        select course_status from course_true_or_false
+    </select>
+    <update id="updateStatus">
+        update course_true_or_false set course_status=#{courseStatus}
+    </update>
+
+    <select id="findCourseByStudent" resultMap="courseResultMapV2">
+        select course.cid,course.course_name,course.course_place,course.substitute_teacher,course.learn_time,course.start_time,course.end_time,course.course_type,course.course_desc,course_student.score,course_student.final_evaluation,course.course_max_count,course.term,course.academic_year from course,student,course_student where
+        course.cid=course_student.course_fk and
+        student.sid=course_student.student_fk and
+        course_student.student_fk=#{sid}
+    </select>
+
+    <delete id="deleteCourseByStudentId">
+        delete  from course_student
+        <where><include refid="courseStudentSql"></include></where>
+    </delete>
+    <select id="findCourseByTeacher" resultMap="courseResultMap">
+        select course.course_name,course.substitute_teacher,course.learn_time,course.start_time,course.end_time,course.course_type,course.course_desc,course_place from course,teacher where course.substitute_teacher=#{tid} and teacher.tid=course.substitute_teacher
+    </select>
+<insert id="insertCourse">
+    insert into course(course_no,course_name,substitute_teacher,create_time,start_time,learn_time,end_time,course_type,term,academic_year,course_desc,course_place,course_max_count)
+    values(#{courseNo},#{courseName},#{substituteTeacher},#{createTime},#{startTime},#{learnTime},#{endTime},#{courseType},#{term},#{academicYear},#{courseDesc},#{coursePlace},#{courseMaxCount})
+</insert>
+    <update id="updateCourse">
+        update course set course_no=#{courseNo},course_name=#{courseName}
+        ,substitute_teacher=#{substituteTeacher},update_time=#{updateTime},start_time=#{startTime},learn_time=#{learnTime},end_time=#{endTime},course_type=#{courseType},term=#{term},academic_year=#{academicYear},course_desc=#{courseDesc},course_place=#{coursePlace}
+      where  cid=#{cid}
+    </update>
+    <update id="updateScore">
+        update course_student set score=#{score},final_evaluation=#{finalEvaluation}
+        where course_fk=#{courseFk} and student_fk=#{studentFk}
+    </update>
+</mapper>

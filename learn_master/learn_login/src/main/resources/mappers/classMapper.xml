@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="learn_user.demo.mapper.classMapper">
+    <sql id="baseSql">
+        <if test="classNo!=null">class_no=#{classNo}</if>
+        <if test="className!=null">and class_name=#{className}</if>
+        <if test="classNumber!=null"> and class_number=#{classNumber}</if>
+        <if test="classTeacher!=null">and class_teacher=#{classTeacher}</if>
+        <if test="classCollegeName!=null">and class_college_name=#{classCollegeName}</if>
+    </sql>
+    <resultMap id="classResultMap" type="learn_user.demo.domain.Class">
+        <association property="classTeacherStr" column="class_teacher" select="learn_user.demo.mapper.teacherMapper.findTeacherById">
+        </association>
+    </resultMap>
+    <select id="findAllClassNo"  resultType="String">
+        select class_name from class
+    </select>
+    <select id="findByClassList" resultMap="classResultMap">
+        select * from class
+    </select>
+    <select id="findSidByClassNo" resultType="java.lang.Long">
+        select sid from student LEFT JOIN class on student.class_no=class.class_no and class.class_no=#{classNo}
+    </select>
+    <select id="findClassById" resultType="String">
+        select class_name from class where class_no=#{classNo}
+    </select>
+    <select id="findByClass" resultMap="classResultMap">
+        select * from class
+        <where>
+            <include refid="baseSql"></include>
+        </where>
+    </select>
+    <insert id="insertClass">
+        insert into class(create_time,class_name,class_teacher,class_college_name,class_no)
+        values (#{createTime},#{className},#{classTeacher},#{classCollegeName},#{classNo})
+    </insert>
+    <update id="updateClass">
+        update class
+        <set>
+            <if test="className!=null">class_name=#{className},</if>
+            <if test="classTeacher!=null">class_teacher=#{classTeacher},</if>
+            <if test="classCollegeName!=null">class_college_name=#{classCollegeName},</if>
+            <if test="updateTime!=null">update_time=#{updateTime}</if>
+        </set>
+        where class_no=#{classNo}
+    </update>
+</mapper>

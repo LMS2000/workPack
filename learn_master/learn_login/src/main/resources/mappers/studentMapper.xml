@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="learn_user.demo.mapper.studentMapper">
+    <sql id="baseSql">
+    <if test="gender!=null"> gender=#{gender}</if>
+     <if test="classNo!=null"> and class_no=#{classNo}</if>
+      <if test="studentNo!=null"> and student_no=#{studentNo}</if>
+       <if test="userNo!=null"> and user_no=#{userNo}</if>
+        <if test="studentName!=null">and student_name=#{studentName}</if>
+    </sql>
+    <resultMap id="studentResultMap" type="learn_user.demo.domain.student">
+        <result column="create_time" property="createTime"></result>
+        <result column="update_time" property="updateTime"></result>
+        <result column="student_no" property="studentNo"></result>
+        <result column="user_no" property="userNo"></result>
+        <result column="class_no" property="classNo"></result>
+    </resultMap>
+<select id="findByStudentList" resultMap="studentResultMap">
+    select * from student
+</select>
+    <select id="findByStudentV2" resultType="String">
+        select student_name from student where sid=#{sid}
+    </select>
+<select id="findByStudent" resultMap="studentResultMap">
+    select * from student
+    <where>
+        <include refid="baseSql"></include>
+    </where>
+</select>
+    <insert id="insertStudent" parameterType="learn_user.demo.domain.student">
+        insert into student(create_time,gender,class_no,student_no,user_no,student_name)
+        values (#{createTime},#{gender},#{classNo},#{studentNo},#{userNo},#{studentName})
+    </insert>
+    <select id="findStudentByClass" resultMap="studentResultMap">
+select * from student where class_no in(select class.class_no from   teacher,class where class.class_teacher=#{tid} )
+    </select>
+    <update id="updateStudent">
+        update student <set>
+         <if test="updateTime!=null">update_time=#{updateTime},</if>
+         <if test="gender!=null">gender=#{gender},</if>
+         <if test="studentNo!=null">student_no=#{studentNo},</if>
+         <if test="studentName!=null">student_name=#{studentName},</if>
+         <if test="email!=null">email=#{email},</if>
+         <if test="phone!=null">phone=#{phone}</if>
+     </set>
+    where sid=#{sid}
+    </update>
+</mapper>

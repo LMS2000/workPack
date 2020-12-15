@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="learn_user.demo.mapper.teacherMapper">
+    <sql id="baseSql">
+        <if test="teacherNo!=null"> teacher_no=#{teacherNo}</if>
+        <if test="teacherName!=null">and teacher_name=#{teacherName}</if>
+        <if test="gender!=null"> and gender=#{gender}</if>
+        <if test="collegeName!=null"> and college_name=#{collegeName}</if>
+        <if test="classNo!=null"> and class_no=#{classNo}</if>
+        <if test="userNo!=null">and user_no=#{userNo}</if>
+    </sql>
+    <resultMap id="teacherResultMap" type="learn_user.demo.domain.teacher">
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="class_no" property="classNo"/>
+        <result column="teacher_no" property="teacherNo"/>
+        <result column="user_no" property="userNo"/>
+        <association property="classNoStr" column="class_no" select="learn_user.demo.mapper.classMapper.findClassById">
+        </association>
+    </resultMap>
+    <select id="findByTeacher" resultMap="teacherResultMap">
+        select * from teacher
+        <where><include refid="baseSql"></include></where>
+    </select>
+    <select id="findByTeacherV2" resultMap="teacherResultMap">
+        select * from teacher
+        <where><include refid="baseSql"></include></where>
+    </select>
+    <select id="findByTeacherList" resultMap="teacherResultMap">
+        select * from teacher
+    </select>
+    <insert id="insertTeacher">
+        insert into teacher(create_time,gender,class_no,college_name,teacher_no,user_no,teacher_name)
+        values (#{createTime},#{gender},#{classNo},#{collegeName},#{teacherNo},#{userNo},#{teacherName})
+    </insert>
+    <select id="findTeacherById" resultType="String">
+        select teacher_name from teacher where tid=#{tid}
+    </select>
+    <update id="updateTeacher">
+        update teacher
+        <set>
+            <if test="gender!=null">gender=#{gender},</if>
+            <if test="collegeName!=null">college_name=#{collegeName},</if>
+            <if test="teacherNo!=null"> teacher_no=#{teacherNo},</if>
+            <if test="classNo!=null"> class_no=#{classNo},</if>
+              update_time=#{updateTime}
+        </set>
+        where tid=#{tid}
+    </update>
+</mapper>

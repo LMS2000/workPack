@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="learn_user.demo.mapper.userMapper">
+    <sql id="baseSql">
+        <if test="userName!=null">user_name=#{userName}</if>
+        <if test="password!=null">and password=#{password}</if>
+        <if test="phone!=null">and phone=#{phone}</if>
+        <if test="email!=null">and email=#{email}</if>
+    </sql>
+    <resultMap id="userResultMap" type="learn_user.demo.domain.user">
+        <result column="user_name" property="userName"></result>
+        <result column="create_time" property="createTime"></result>
+        <result column="update_time" property="updateTime"></result>
+    </resultMap>
+   <select id="selectByUserName" resultType="learn_user.demo.domain.user">
+       select * from learn_user where user_name=#{userName} and password=#{password}
+   </select>
+    <insert id="insertUser">
+        insert into learn_user(uid,create_time,user_name,password,role) values(#{uid},#{createTime},#{userName},#{password},#{role})
+    </insert>
+    <select id="findAllUserList" resultMap="userResultMap">
+        select * from learn_user
+    </select>
+   <select id="findByUser" resultMap="userResultMap">
+       select * from learn_user
+    <where>
+        <include refid="baseSql"></include>
+    </where>
+   </select>
+<!--    <update id="updateExlutePassword">-->
+<!--        update user set update_time=#{updateTime},phone=#{phone},-->
+<!--    </update>-->
+    <update id="updatePasswordByUserName" >
+     update learn_user set password=#{password},update_time=#{updateTime}
+     where user_name=#{userName}
+    </update>
+</mapper>
